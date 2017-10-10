@@ -5,107 +5,78 @@ import java.util.Set;
 
 public class GameNim extends Game {
 
-	char marks[] = {'O', 'X'}; //'O' for computer, 'X' for human
-
-    int winningLines[][] = {
-        { 1, 2, 3 },
-        { 4, 5, 6 },
-        { 7, 8, 9 },
-        { 1, 4, 7 },
-        { 2, 5, 8 },
-        { 3, 6, 9 },
-        { 1, 5, 9 },
-        { 3, 5, 7 }
-    };
-
     int WinningScore = 10;
     int LosingScore = -10;
     int NeutralScore = 0;
 
-    public GameTicTacToe() {
-    	currentState = new StateTicTacToe();
+    public GameNim() {
+        currentState = new StateNim();
     }
 
-    public boolean isWinState(State state)
-    {
-        StateTicTacToe tstate = (StateTicTacToe) state;
+    public boolean isWinState(State state) {
+        StateNim tstate = (StateNim) state;
         //player who did the last move
-        int previous_player = (state.player==0 ? 1 : 0);
-        char mark = marks[previous_player];
+        return tstate.coins == 1 ? true : false;
+    }
 
-        for (int i = 0; i < winningLines.length; i++) {
+    /**
+     * No Stuck State in Nim. Always return false
+     */
+    public boolean isStuckState(State state) {
 
-            if (mark == tstate.board[winningLines[i][0]]
-             && mark == tstate.board[winningLines[i][1]]
-             && mark == tstate.board[winningLines[i][2]]) {
-
-            	return true;
-            }
-        }
         return false;
     }
 
-    public boolean isStuckState(State state) {
+    public Set<State> getSuccessors(State state) {
+        if (isWinState(state) || isStuckState(state))
+            return null;
 
-        if (isWinState(state))
-            return false;
+        Set<State> successors = new HashSet<State>();
+        StateNim tstate = (StateNim) state;
 
-        StateTicTacToe tstate = (StateTicTacToe) state;
+        StateNim successor_state;
 
-        for (int i=1; i<=9; i++)
-            if ( tstate.board[i] == ' ' )
-                return false;
+        // take 1 pile
+        successor_state = new StateNim(tstate);
+        successor_state.coins -= 1;
+        successor_state.player = (state.player == 0 ? 1 : 0);
 
-        return true;
-    }
+        successors.add(successor_state);
 
+        // take 2 pile
+        successor_state = new StateNim(tstate);
+        successor_state.coins -= 2;
+        successor_state.player = (state.player == 0 ? 1 : 0);
 
-	public Set<State> getSuccessors(State state)
-    {
-		if(isWinState(state) || isStuckState(state))
-			return null;
+        successors.add(successor_state);
 
-		Set<State> successors = new HashSet<State>();
-        StateTicTacToe tstate = (StateTicTacToe) state;
+        // take 3 pile
+        successor_state = new StateNim(tstate);
+        successor_state.coins -= 3;
+        successor_state.player = (state.player == 0 ? 1 : 0);
 
-        StateTicTacToe successor_state;
-
-        char mark = 'O';
-        if (tstate.player == 1) //human
-            mark = 'X';
-
-        for (int i = 1; i <= 9; i++) {
-            if (tstate.board[i] == ' ') {
-                successor_state = new StateTicTacToe(tstate);
-                successor_state.board[i] = mark;
-                successor_state.player = (state.player==0 ? 1 : 0);
-
-                successors.add(successor_state);
-            }
-        }
+        successors.add(successor_state);
 
         return successors;
     }
 
-    public double eval(State state)
-    {
-    	if(isWinState(state)) {
-    		//player who made last move
-    		int previous_player = (state.player==0 ? 1 : 0);
+    public double eval(State state) {
+        if (isWinState(state)) {
+            //player who made last move
+            int previous_player = (state.player == 0 ? 1 : 0);
 
-	    	if (previous_player==0) //computer wins
-	            return WinningScore;
-	    	else //human wins
-	            return LosingScore;
-    	}
+            if (previous_player == 0) //computer wins
+                return WinningScore;
+            else //human wins
+                return LosingScore;
+        }
 
         return NeutralScore;
     }
 
-
     public static void main(String[] args) throws Exception {
 
-        Game game = new GameTicTacToe();
+        Game game = new GameNim();
         Search search = new Search(game);
         int depth = 8;
 
@@ -114,47 +85,48 @@ public class GameNim extends Game {
 
         while (true) {
 
-        	StateTicTacToe 	nextState = null;
+            StateNim nextState = null;
 
-            switch ( game.currentState.player ) {
-              case 1: //Human
+            switch (game.currentState.player) {
+            case 1: //Human
 
-            	  //get human's move
-                  System.out.print("Enter your *valid* move> ");
-                  int pos = Integer.parseInt( in.readLine() );
+                //get human's move
+                System.out.print("Enter # of pile you want to take> ");
+                int piles = Integer.parseInt(in.readLine());
 
-                  nextState = new StateTicTacToe((StateTicTacToe)game.currentState);
-                  nextState.player = 1;
-                  nextState.board[pos] = 'X';
-                  System.out.println("Human: \n" + nextState);
-                  break;
+                nextState = new StateNim((StateNim) game.currentState);
+                nextState.player = 1;
+                nextState.coins -= piles;
+                System.out.println("\nHuman took: " + piles + " " + nextState);
+                break;
 
-              case 0: //Computer
+            case 0: //Computer
 
-            	  nextState = (StateTicTacToe)search.bestSuccessorState(depth);
-            	  nextState.player = 0;
-            	  System.out.println("Computer: \n" + nextState);
-                  break;
+                StateNim cState = (StateNim) game.currentState;
+                nextState = (StateNim) search.bestSuccessorState(depth);
+                nextState.player = 0;
+                System.out.println("Computer took: " + (cState.coins - nextState.coins) + " " + nextState);
+                break;
             }
 
             game.currentState = nextState;
             //change player
-            game.currentState.player = (game.currentState.player==0 ? 1 : 0);
+            game.currentState.player = (game.currentState.player == 0 ? 1 : 0);
 
             //Who wins?
-            if ( game.isWinState(game.currentState) ) {
+            if (game.isWinState(game.currentState)) {
 
-            	if (game.currentState.player == 1) //i.e. last move was by the computer
-            		System.out.println("Computer wins!");
-            	else
-            		System.out.println("You win!");
+                if (game.currentState.player == 1) //i.e. last move was by the computer
+                    System.out.println("Computer wins!");
+                else
+                    System.out.println("You win!");
 
-            	break;
+                break;
             }
 
-            if ( game.isStuckState(game.currentState) ) {
-            	System.out.println("Cat's game!");
-            	break;
+            if (game.isStuckState(game.currentState)) {
+                System.out.println("Cat's game!");
+                break;
             }
         }
     }
