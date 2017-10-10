@@ -3,6 +3,7 @@ import java.util.*;
 
 public class CSPZebra extends CSP {
 
+    // Variable lists
     static Set<Object> varCol = new HashSet<Object>(
             Arrays.asList(new String[] { "blue", "green", "ivory", "red", "yellow" }));
     static Set<Object> varDri = new HashSet<Object>(
@@ -27,7 +28,7 @@ public class CSPZebra extends CSP {
         if (!C.get(X).contains(Y))
             return true;
 
-        //Uniqueness constraints
+        //Uniqueness constraints (Same Varible Set)
         if (varCol.contains(X) && varCol.contains(Y) && !X.equals(Y) && x.equals(y))
             return false;
         if (varDri.contains(X) && varDri.contains(Y) && !X.equals(Y) && x.equals(y))
@@ -64,7 +65,7 @@ public class CSPZebra extends CSP {
         //Milk is drunk in middle house
         //Norwegian lives in first house
 
-        //Chesterfield smoker lives next to fox owner
+        //Chesterfield smoker lives next to fox owner (left or right)
         if (X.equals("chesterfield") && Y.equals("fox") && xVal != yVal + 1 && xVal != yVal - 1)
             return false;
         //Kools smoker next to horse house
