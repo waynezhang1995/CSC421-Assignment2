@@ -88,6 +88,7 @@ public class CSPZebra extends CSP {
         CSPZebra csp = new CSPZebra();
         Integer[] houses = { 1, 2, 3, 4, 5 }; //left most house is 1, then 2, then 3...
 
+        // add domian to each variable
         for (Object X : varCol)
             csp.addDomain(X, houses);
         for (Object X : varDri)
